@@ -65,7 +65,7 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
         $keyAliasMap = array();
         foreach ($keyNames as $key => $alias) {
             // 数字的key，说明不需要映射别名
-            if (is_numeric($key)){
+            if (is_int($key)){
                 $keyAliasMap[$alias] = $alias;
             }
             // 需要映射别名
@@ -113,6 +113,11 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
         // 为空表示全部数据
         if (empty($conditions)){
             return $this;
+        }
+
+        //　如果传进来的是闭包，则将是自定义匹配
+        if ($conditions instanceof Closure){
+            $conditionType = self::CONDITION_CUSTOM;
         }
 
         $filteredData = array();
@@ -257,6 +262,7 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
      * @param $orderType int SORT_ASC/SORT_DESC
      * @param $sortFlag int SORT_REGULAR/SORT_NUMERIC/SORT_STRING
      * @return Matrix
+     * @throws InvalidArgumentException
      */
     public function orderBy($keyNames, $orderType = SORT_ASC, $sortFlag = SORT_REGULAR){
         // 先转化为数组
@@ -264,11 +270,11 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
 
         // 多个key进行排序
         if (is_array($keyNames)){
-
             // 构造array_multisort的参数
             $args = array();
             foreach ($keyNames as $key => $option) {
-                if (is_numeric($key)){
+                // 数字key，说明$option其实是列名
+                if (is_int($key)){
                     $args[] = Matrix::from($this->data)->column($option);
                     $args[] = $orderType;
                     $args[] = $sortFlag;
@@ -296,8 +302,21 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
                 }
             }
 
-            $args[] = &$this->data;
-            call_user_func_array('array_multisort', $args);
+//            $args[] = &$this->data;
+//            call_user_func_array('array_multisort', $args);       // call_user_func_array seems won't change data!
+            switch (count($keyNames)){
+                case 1:
+                    array_multisort($args[0], $args[1], $args[2], $this->data);
+                    break;
+                case 2:
+                    array_multisort($args[0], $args[1], $args[2], $args[3], $args[4], $args[5], $this->data);
+                    break;
+                case 3:
+                    array_multisort($args[0], $args[1], $args[2], $args[3], $args[4], $args[5], $args[6], $args[7], $args[8], $this->data);
+                    break;
+                default:
+                    throw new InvalidArgumentException('Too many sort keys!');
+            }
         }
         // 单个key进行排序
         else {

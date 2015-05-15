@@ -303,7 +303,7 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
             }
 
 //            $args[] = &$this->data;
-//            call_user_func_array('array_multisort', $args);       // call_user_func_array seems won't change data!
+//            call_user_func_array('array_multisort', $args);   // call_user_func_array seems won't change data! (It's a bug under PHP3.3.3. However, I have to work with it!)
             switch (count($keyNames)){
                 case 1:
                     array_multisort($args[0], $args[1], $args[2], $this->data);

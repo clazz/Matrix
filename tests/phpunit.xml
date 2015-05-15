@@ -1,0 +1,15 @@
+<phpunit bootstrap="../vendor/autoload.php"
+         colors="false"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         stopOnFailure="false">
+
+    <testsuites>
+        <testsuite name="integralMall">
+            <directory>functional</directory>
+            <directory>performance</directory>
+        </testsuite>
+    </testsuites>
+
+</phpunit>

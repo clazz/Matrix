@@ -92,12 +92,12 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
 
     /**
      * 映射
-     * @param callable $mapFunc 将每一行数据映射为$mapFunc()的返回值, 函数入参即行的数据，行的key
+     * @param callable $mapFunc 将每一行数据映射为$mapFunc()的返回值, 函数入参即行的数据
      * @return $this
      */
     public function map($mapFunc){
-        foreach ($this->data as $key => &$rowData) {
-            $rowData = call_user_func($mapFunc, $rowData, $key);
+        foreach ($this->data as &$rowData) {
+            $rowData = call_user_func($mapFunc, $rowData);
         }
         return $this;
     }

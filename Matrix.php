@@ -8,7 +8,7 @@
  *          ->select(array('productId' => 'id', 'productName'))
  *          ->where(function ($row) {
  *              return $row['id'] > 5;
- *          }, Matrix::CONDITION_CUSTOM)
+ *          })
  *          ->orderBy('id', SORT_DESC)
  *          ->indexedBy('productName')
  *          ->toArray();

@@ -8,7 +8,7 @@
  *          ->select(array('productId' => 'id', 'productName'))
  *          ->where(function ($row) {
  *              return $row['id'] > 5;
- *          })
+ *          }, Matrix::CONDITION_CUSTOM)
  *          ->orderBy('id', SORT_DESC)
  *          ->indexedBy('productName')
  *          ->toArray();
@@ -46,6 +46,24 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
         }
 
         return $emptyCollection;
+    }
+
+    /**
+     * 合并数据源
+     * @param $dataSource array
+     * @return $this
+     */
+    public function unionAll($dataSource){
+        if (!is_array($dataSource)){
+            $dataSource = Matrix::from($dataSource)->toArray();
+        }
+
+        if (!is_array($this->data)){
+            $this->data = $this->toArray();
+        }
+
+        $this->data = array_merge($this->data, $dataSource);
+        return $this;
     }
 
     /**
@@ -87,6 +105,16 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
         }
 
         $this->data = $selectedData;
+        return $this;
+    }
+
+    public function groupSelect($keyNames){
+        $selected = array();
+        foreach ($this->data as $groupName => $groupData) {
+            $selected[$groupName] = Matrix::from($groupData)->select($keyNames)->toArray();
+        }
+
+        $this->data = $selected;
         return $this;
     }
 
@@ -255,9 +283,13 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
      * 1. string 根据单个key进行排序
      * 2. array 指定多个key进行排序，形如 array('id', 'name') 或
      *      array(
+     *            // 排序类型或排序标志：
      *           'id' => array( SORT_ASC/SORT_DESC, SORT_REGULAR/SORT_NUMERIC/SORT_STRING),
      *           'name' => array(SORT_ASC),
-     *           'age' => SORT_NUMERIC
+     *           'age' => SORT_NUMERIC,
+     *           // 按照某个列表进行排序，"list:"是前导标志；
+     *           // 不在列表中的值排在最后
+     *           'gender' => array('list:', 'male', 'female)
      *      )
      * @param $orderType int SORT_ASC/SORT_DESC
      * @param $sortFlag int SORT_REGULAR/SORT_NUMERIC/SORT_STRING
@@ -276,6 +308,14 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
                 // 数字key，说明$option其实是列名
                 if (is_int($key)){
                     $args[] = Matrix::from($this->data)->column($option);
+                    $args[] = $orderType;
+                    $args[] = $sortFlag;
+                } else if ($option[0] === 'list:'){ // 按照列表进行排序
+                    array_shift($option);
+                    $args[] = $this->duplicate()->map(function($row) use($key, $option) {
+                        $index = array_search($row[$key], $option);
+                        return $index === false ? PHP_INT_MAX : $index;
+                    })->toArray();
                     $args[] = $orderType;
                     $args[] = $sortFlag;
                 } else {
@@ -492,6 +532,40 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
      */
     public function count() {
         return count($this->data);
+    }
+
+    /**
+     * 返回所有列的key，无value
+     * @return array
+     */
+    public function keys(){
+        return array_keys($this->toArray());
+    }
+
+    /**
+     * 返回所有列的值，无key
+     * @return array
+     */
+    public function values(){
+        return array_values($this->toArray());
+    }
+
+    /**
+     * 取几个元素
+     * @param int $limit 取几个
+     * @param int $start 从第几个开始取
+     * @return $this
+     */
+    public function take($limit, $start=0) {
+        $this->data = array_slice($this->toArray(), $start, $limit);
+        return $this;
+    }
+
+    /**
+     * @return Matrix 返回复制品
+     */
+    public function duplicate(){
+        return clone $this;
     }
 
     // 简单匹配，$conditions形如array('key' => $value, ...), 用于匹配data[key] == $value的数据

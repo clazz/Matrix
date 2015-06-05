@@ -440,4 +440,68 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
 
         reset($query);
     }
+
+    public function testOrderByListSuccess(){
+        $dataSource = array_map(function ($i) {
+            return array(
+                'productId' => $i,
+                'name' => 'test' . $i,
+                'otherFields' => 'other' . $i
+            );
+        }, range(0, TEST_MAX_ARRAY_SIZE));
+
+        shuffle($dataSource);
+
+        $expected = array_map(function ($i) {
+            return array(
+                'productId' => $i,
+                'name' => 'test' . $i,
+                'otherFields' => 'other' . $i
+            );
+        }, range(0, TEST_MAX_ARRAY_SIZE));
+
+        $data = Matrix::from($dataSource)->orderBy(array('productId' => array_merge(array('list:'), range(0, TEST_MAX_ARRAY_SIZE))))->toArray();
+        $this->assertEquals($expected, $data);
+    }
+
+    // 根据列表进行排序 - 不在列表中的排在最后
+    public function testOrderByList_NotInListAtEnd(){
+        $dataSource = array(
+            array('gender' => 'female'),
+            array('gender' => 'femazzz'),
+            array('gender' => 'male'),
+        );
+
+        $data = Matrix::from($dataSource)->orderBy(array('gender' => array('list:', 'male', 'female')))->toArray();
+
+        $expected = array(
+            array('gender' => 'male'),
+            array('gender' => 'female'),
+            array('gender' => 'femazzz'),
+        );
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testOrderByListFail(){
+        $dataSource = array_map(function ($i) {
+            return array(
+                'productId' => $i,
+                'name' => 'test' . $i,
+                'otherFields' => 'other' . $i
+            );
+        }, range(0, TEST_MAX_ARRAY_SIZE));
+
+        shuffle($dataSource);
+
+        $expected = array_map(function ($i) {
+            return array(
+                'productId' => $i,
+                'name' => 'test' . $i,
+                'otherFields' => 'other' . $i
+            );
+        }, range(0, TEST_MAX_ARRAY_SIZE));
+
+        $data = Matrix::from($dataSource)->orderBy(array('productId' => array_merge(array('list'), range(0, TEST_MAX_ARRAY_SIZE))))->toArray();
+        $this->assertNotEquals($expected, $data);
+    }
 }

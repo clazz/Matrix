@@ -13,7 +13,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     /**
      * alias映射
      */
-    public function testBasicSelect1() {
+    public function test_select_alias_single() {
         $data = array(
             array('productId' => 1, 'productName' => 'test'),
         );
@@ -31,7 +31,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     /**
      * alias映射
      */
-    public function testBasicSelect2() {
+    public function test_select_alias_multi() {
         $data = array_fill(0, TEST_MAX_ARRAY_SIZE,
             array('productId' => 1, 'productName' => 'test')
         );
@@ -47,7 +47,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     /**
      * alias映射
      */
-    public function testBasicSelect3() {
+    public function test_select_no_alias() {
         $data = array_fill(0, TEST_MAX_ARRAY_SIZE,
             array('id' => 1, 'name' => 'test')
         );
@@ -63,7 +63,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     /**
      * alias映射
      */
-    public function testBasicSelect4() {
+    public function test_select_mixed_no_alias_and_alias() {
         $dataSource = array_fill(0, TEST_MAX_ARRAY_SIZE,
             array('id' => 1, 'productName' => 'test')
         );
@@ -80,7 +80,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     /**
      * alias映射
      */
-    public function testBasicSelect5() {
+    public function test_select_mixed_alias_and_no_alias() {
         $dataSource = array_fill(0, TEST_MAX_ARRAY_SIZE,
             array('productId' => 1, 'name' => 'test')
         );
@@ -97,7 +97,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     /**
      * 如果参数为空则表示选择所有数据
      */
-    public function testBasicSelect6() {
+    public function test_select_empty_means_all() {
         $dataSource = array_fill(0, TEST_MAX_ARRAY_SIZE,
             array('id' => 1, 'name' => 'test')
         );
@@ -111,7 +111,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals($data, $expected);
     }
 
-    public function testWhere1() {
+    public function test_where_simple_match() {
         $dataSource = array_map(function ($i) {
             return array(
                 'id' => $i,
@@ -129,7 +129,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals($data, $expected);
     }
 
-    public function testWhere2() {
+    public function test_where_using_closure() {
         $dataSource = array_map(function ($i) {
             return array(
                 'id' => $i,
@@ -156,7 +156,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     /**
      * 单个key
      */
-    public function testIndexedBy1() {
+    public function test_indexedBy_single_id() {
         $dataSource = array_map(function ($i) {
             return array(
                 'id' => $i,
@@ -183,7 +183,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     /**
      * 单个key
      */
-    public function testIndexedBy2() {
+    public function test_indexedBy_single_name() {
         $dataSource = array_map(function ($i) {
             return array(
                 'id' => $i,
@@ -211,7 +211,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     /**
      * 两个key
      */
-    public function testIndexedBy3() {
+    public function test_indexedBy_multi_fields() {
         $dataSource = array_map(function ($i) {
             return array(
                 'id' => $i,
@@ -236,7 +236,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals($data, $expected);
     }
 
-    public function testOrderBy1() {
+    public function test_orderBy_single_id() {
         $dataSource = array_map(function ($i) {
             return array(
                 'id' => $i,
@@ -259,7 +259,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals($data, $expected);
     }
 
-    public function testOrderBy2() {
+    public function test_orderBy_single_id_desc() {
         $dataSource = array_map(function ($i) {
             return array(
                 'id' => $i,
@@ -282,7 +282,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals($data, $expected);
     }
 
-    public function testOrderBy3() {
+    public function test_orderBy_single_id_desc_in_array_form() {
         $dataSource = array_map(function ($i) {
             return array(
                 'id' => $i,
@@ -305,30 +305,42 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals($data, $expected);
     }
 
-    public function testOrderBy4() {
-        $dataSource = array_map(function ($i) {
-            return array(
-                'id' => $i,
-                'name' => 'test' . $i
-            );
-        }, range(0, TEST_MAX_ARRAY_SIZE));
+    public function test_orderBy_multi_fields() {
+        $dataSource = array(
+            array('age' => 10, 'name' => 'Jim'),
+            array('age' => 10, 'name' => 'Tom'),
+            array('age' => 20, 'name' => 'Tony'),
+            array('age' => 20, 'name' => 'Jack'),
+        );
 
         shuffle($dataSource);
 
         $data = Matrix::from($dataSource)
-            ->orderBy(array('id' => SORT_DESC, 'name' => SORT_ASC))
+            ->orderBy(array('age' => SORT_DESC, 'name' => SORT_ASC))
             ->toArray();
 
-        $expected = array_map(function ($i) {
-            return array(
-                'id' => $i,
-                'name' => 'test' . $i
-            );
-        }, range(TEST_MAX_ARRAY_SIZE, 0, -1));
+        $expected = array(
+            array('age' => 20, 'name' => 'Jack'),
+            array('age' => 20, 'name' => 'Tony'),
+            array('age' => 10, 'name' => 'Jim'),
+            array('age' => 10, 'name' => 'Tom'),
+        );
+        $this->assertEquals($data, $expected);
+
+        $data = Matrix::from($dataSource)
+            ->orderBy(array('age' => SORT_ASC, 'name' => SORT_DESC))
+            ->toArray();
+
+        $expected = array(
+            array('age' => 10, 'name' => 'Tom'),
+            array('age' => 10, 'name' => 'Jim'),
+            array('age' => 20, 'name' => 'Tony'),
+            array('age' => 20, 'name' => 'Jack'),
+        );
         $this->assertEquals($data, $expected);
     }
 
-    public function testGroupBy1() {
+    public function test_groupBy_single_class() {
 
         $dataSource = array_merge(
             array_map(function ($i) {
@@ -369,7 +381,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     /**
      * 测试映射功能
      */
-    public function testMap() {
+    public function test_map_single_id() {
         $dataSource = array_map(function ($i) {
             return array(
                 'productId' => $i,
@@ -410,7 +422,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     /**
      * 测试迭代器
      */
-    public function testIterator() {
+    public function test_array_access_iterator() {
 
         $dataSource = array_map(function ($i) {
             return array(
@@ -434,14 +446,12 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
             $this->assertEquals($data[$key], $value);
         }
 
-//        dump($query);
-
         $this->assertEquals(count($data), count($query));
 
         reset($query);
     }
 
-    public function testOrderByListSuccess(){
+    public function test_orderBy_list_in_correct_form() {
         $dataSource = array_map(function ($i) {
             return array(
                 'productId' => $i,
@@ -465,7 +475,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     }
 
     // 根据列表进行排序 - 不在列表中的排在最后
-    public function testOrderByList_NotInListAtEnd(){
+    public function test_OrderBy_list_elements_not_in_list_should_at_end() {
         $dataSource = array(
             array('gender' => 'female'),
             array('gender' => 'femazzz'),
@@ -482,7 +492,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals($expected, $data);
     }
 
-    public function testOrderByListFail(){
+    public function test_orderBy_list_in_incorrect_form() {
         $dataSource = array_map(function ($i) {
             return array(
                 'productId' => $i,
@@ -505,7 +515,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         $this->assertNotEquals($expected, $data);
     }
 
-    public function testAll(){
+    public function test_isAll(){
         $this->assertEquals(true, Matrix::from(array(1, 2, 3))->isAll(function($x){ return $x > 0; }));
         $this->assertEquals(true, Matrix::from(array())->isAll(function($x){ return $x > 0; }));
         $this->assertEquals(false, Matrix::from(array(1, 2, 3))->isAll(function($x){ return $x < 1; }));
@@ -513,7 +523,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals(false, Matrix::from(array(1, 2, 3))->isAll(function($x){ return $x < 3; }));
     }
 
-    public function testAny(){
+    public function test_isAny() {
         $this->assertEquals(true, Matrix::from(array(1, 2, 3))->isAny(function($x){ return $x > 0;}));
         $this->assertEquals(false, Matrix::from(array())->isAny(function($x){ return $x > 0; }));
         $this->assertEquals(false, Matrix::from(array(1, 2, 3))->isAny(function($x){ return $x < 0; }));
@@ -523,13 +533,13 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals(true, Matrix::from(array(1, 2, 3))->isAny(function($x){ return $x < 4; }));
     }
 
-    public function testUniqueByWithoutPreserveKey(){
+    public function test_uniqueBy_no_preserve_keys() {
         $data = Matrix::from(array(
-                array('id' => 1, 'name' => 'Jim'),
-                array('id' => 2, 'name' => 'Tom'),
-                array('id' => 1, 'name' => 'Jim'),
-                array('id' => 2, 'name' => 'Tom'),
-            ))
+            array('id' => 1, 'name' => 'Jim'),
+            array('id' => 2, 'name' => 'Tom'),
+            array('id' => 1, 'name' => 'Jim'),
+            array('id' => 2, 'name' => 'Tom'),
+        ))
             ->uniqueBy('id')->toArray();
         $expected = array(
             array('id' => 1, 'name' => 'Jim'),
@@ -537,13 +547,14 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         );
         $this->assertEquals($expected, $data);
     }
-    public function testUniqueByPreserveKeyOfId(){
+
+    public function test_uniqueBy_with_preserve_keys_of_id() {
         $data = Matrix::from(array(
             array('id' => 1, 'name' => 'Jim'),
             array('id' => 2, 'name' => 'Tom'),
             array('id' => 1, 'name' => 'Jim'),
             array('id' => 2, 'name' => 'Tom'),
-            ))
+        ))
             ->uniqueBy('id', true)->toArray();
         $expected = array(
             '1' => array('id' => 1, 'name' => 'Jim'),
@@ -551,7 +562,8 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         );
         $this->assertEquals($expected, $data);
     }
-    public function testUniqueByPreserveKeyOfName(){
+
+    public function test_uniqueBy_with_preserve_keys_of_name() {
         $data = Matrix::from(array(
             array('id' => 1, 'name' => 'Jim'),
             array('id' => 2, 'name' => 'Tom'),

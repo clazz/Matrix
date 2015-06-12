@@ -236,6 +236,20 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
     }
 
     /**
+     * 按某一列或某几列进行唯一化
+     * @param string|array $columnName
+     * @param bool $preserveKeys  是否保留key
+     * @return $this
+     */
+    public function uniqueBy($columnName, $preserveKeys=false){
+        $this->indexedBy($columnName);
+        if (!$preserveKeys){
+            $this->data = $this->values();
+        }
+        return $this;
+    }
+
+    /**
      * 根据列来将数据进行分组
      * @param  mixed $columnName 列名
      * 1. string 指定某个列为key
@@ -566,6 +580,34 @@ class Matrix implements IteratorAggregate,ArrayAccess,Countable {
      */
     public function duplicate(){
         return clone $this;
+    }
+
+    /**
+     * 判断是否全都符合某个条件
+     * @param $condition callable 条件, 第一个参数是row，第二个是index
+     * @return bool
+     */
+    public function isAll($condition){
+        foreach ($this->data as $index => $row) {
+            if (!call_user_func($condition, $row, $index)){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 判断是否有一个符合某个条件
+     * @param $condition callable 条件, 第一个参数是row，第二个是index
+     * @return bool
+     */
+    public function isAny($condition){
+        foreach ($this->data as $index => $row) {
+            if (call_user_func($condition, $row, $index)){
+                return true;
+            }
+        }
+        return false;
     }
 
     // 简单匹配，$conditions形如array('key' => $value, ...), 用于匹配data[key] == $value的数据

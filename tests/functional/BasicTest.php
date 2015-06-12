@@ -504,4 +504,65 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
         $data = Matrix::from($dataSource)->orderBy(array('productId' => array_merge(array('list'), range(0, TEST_MAX_ARRAY_SIZE))))->toArray();
         $this->assertNotEquals($expected, $data);
     }
+
+    public function testAll(){
+        $this->assertEquals(true, Matrix::from(array(1, 2, 3))->isAll(function($x){ return $x > 0; }));
+        $this->assertEquals(true, Matrix::from(array())->isAll(function($x){ return $x > 0; }));
+        $this->assertEquals(false, Matrix::from(array(1, 2, 3))->isAll(function($x){ return $x < 1; }));
+        $this->assertEquals(false, Matrix::from(array(1, 2, 3))->isAll(function($x){ return $x < 2; }));
+        $this->assertEquals(false, Matrix::from(array(1, 2, 3))->isAll(function($x){ return $x < 3; }));
+    }
+
+    public function testAny(){
+        $this->assertEquals(true, Matrix::from(array(1, 2, 3))->isAny(function($x){ return $x > 0;}));
+        $this->assertEquals(false, Matrix::from(array())->isAny(function($x){ return $x > 0; }));
+        $this->assertEquals(false, Matrix::from(array(1, 2, 3))->isAny(function($x){ return $x < 0; }));
+        $this->assertEquals(false, Matrix::from(array(1, 2, 3))->isAny(function($x){ return $x < 1; }));
+        $this->assertEquals(true, Matrix::from(array(1, 2, 3))->isAny(function($x){ return $x < 2; }));
+        $this->assertEquals(true, Matrix::from(array(1, 2, 3))->isAny(function($x){ return $x < 3; }));
+        $this->assertEquals(true, Matrix::from(array(1, 2, 3))->isAny(function($x){ return $x < 4; }));
+    }
+
+    public function testUniqueByWithoutPreserveKey(){
+        $data = Matrix::from(array(
+                array('id' => 1, 'name' => 'Jim'),
+                array('id' => 2, 'name' => 'Tom'),
+                array('id' => 1, 'name' => 'Jim'),
+                array('id' => 2, 'name' => 'Tom'),
+            ))
+            ->uniqueBy('id')->toArray();
+        $expected = array(
+            array('id' => 1, 'name' => 'Jim'),
+            array('id' => 2, 'name' => 'Tom'),
+        );
+        $this->assertEquals($expected, $data);
+    }
+    public function testUniqueByPreserveKeyOfId(){
+        $data = Matrix::from(array(
+            array('id' => 1, 'name' => 'Jim'),
+            array('id' => 2, 'name' => 'Tom'),
+            array('id' => 1, 'name' => 'Jim'),
+            array('id' => 2, 'name' => 'Tom'),
+            ))
+            ->uniqueBy('id', true)->toArray();
+        $expected = array(
+            '1' => array('id' => 1, 'name' => 'Jim'),
+            '2' => array('id' => 2, 'name' => 'Tom'),
+        );
+        $this->assertEquals($expected, $data);
+    }
+    public function testUniqueByPreserveKeyOfName(){
+        $data = Matrix::from(array(
+            array('id' => 1, 'name' => 'Jim'),
+            array('id' => 2, 'name' => 'Tom'),
+            array('id' => 1, 'name' => 'Jim'),
+            array('id' => 2, 'name' => 'Tom'),
+        ))
+            ->uniqueBy('name', true)->toArray();
+        $expected = array(
+            'Jim' => array('id' => 1, 'name' => 'Jim'),
+            'Tom' => array('id' => 2, 'name' => 'Tom'),
+        );
+        $this->assertEquals($expected, $data);
+    }
 }
